@@ -2,27 +2,33 @@ require 'oracle_of_bacon'
 
 require 'fakeweb'
 require 'debugger'
+require 'rspec/its'
+require 'rspec/collection_matchers'
 
 describe OracleOfBacon do
   before(:all) { FakeWeb.allow_net_connect = false }
-  describe 'instance', :pending => true do
+  describe 'instance' do
     before(:each) { @orb = OracleOfBacon.new('fake_api_key') }
+    
     describe 'when new' do
       subject { @orb }
       it { should_not be_valid }
     end
+    
     describe 'when only From is specified' do
       subject { @orb.from = 'Carrie Fisher' ; @orb }
       it { should be_valid }
       its(:from) { should == 'Carrie Fisher' }
       its(:to)   { should == 'Kevin Bacon' }
     end
+    
     describe 'when only To is specified' do
       subject { @orb.to = 'Ian McKellen' ; @orb }
       it { should be_valid }
       its(:from) { should == 'Kevin Bacon' }
       its(:to)   { should == 'Ian McKellen'}
     end
+    
     describe 'when From and To are both specified' do
       context 'and distinct' do
         subject { @orb.to = 'Ian McKellen' ; @orb.from = 'Carrie Fisher' ; @orb }
@@ -35,8 +41,10 @@ describe OracleOfBacon do
         it { should_not be_valid }
       end
     end
+
   end
-  describe 'parsing XML response', :pending => true do
+
+  describe 'parsing XML response' do
     describe 'for unauthorized access/invalid API key' do
       subject { OracleOfBacon::Response.new(File.read 'spec/unauthorized_access.xml') }
       its(:type) { should == :error }
@@ -57,7 +65,7 @@ describe OracleOfBacon do
     describe 'for a spellcheck match' do
       subject { OracleOfBacon::Response.new(File.read 'spec/spellcheck_example.xml') }
       its(:type) { should == :spellcheck }
-      its(:data) { should have(34).elements }
+      its(:data) { should have(34).items }
       its(:data) { should include('Anthony Perkins (I)') }
       its(:data) { should include('Anthony Parkin') }
     end
@@ -67,7 +75,8 @@ describe OracleOfBacon do
       its(:data) { should match /unknown/i }
     end
   end
-  describe 'constructing URI', :pending => true do
+ 
+  describe 'constructing URI' do
     subject do
       oob = OracleOfBacon.new('fake_key')
       oob.from = '3%2 "a' ; oob.to = 'George Clooney'
@@ -79,7 +88,8 @@ describe OracleOfBacon do
     it { should match /b=George\+Clooney/ }
     it { should match /a=3%252\+%22a/ }
   end
-  describe 'service connection', :pending => true do
+
+  describe 'service connection' do
     before(:each) do
       @oob = OracleOfBacon.new
       @oob.stub(:valid?).and_return(true)
